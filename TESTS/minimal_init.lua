@@ -5,7 +5,7 @@
 -- It runs nothing itself. A dependency that cannot be found is FATAL (NEW-40): the message names
 -- all four places that were searched and the process exits with code 1, so that a run which could
 -- not load its dependency never looks green. Each dependency <name> is looked up in, in this order:
---   1. $<NAME>_DIR                  (lib.nvim -> $LIB_NVIM_DIR, ui.nvim -> $UI_NVIM_DIR)
+--   1. $<NAME>_DIR                  (lib.nvim -> $LIB_NVIM_DIR)
 --   2. <repo>/.deps/<name>          (what CI checks out)
 --   3. <repo>/../<name>             (a sibling checkout)
 --   4. stdpath('data')/lazy/<name>  (what a plugin manager installed)
