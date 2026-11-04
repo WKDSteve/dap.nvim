@@ -41,8 +41,8 @@ return {
   conformance = {
     -- gated: a failed check makes `scripts/test.sh conformance` exit 1
     gate = true,
-    -- K6 needs nvim-dap (an external plugin the minimal conformance editor does not have) and `:checkhealth` then blocks
-    -- the child editor on Linux (call timeout, exit 3)
+    -- K6 needs nvim-dap, an external plugin the minimal conformance editor does not have: without it the health check
+    -- reports an error
     skip = { "K6" },
   },
 }
