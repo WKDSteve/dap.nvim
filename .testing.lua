@@ -45,4 +45,18 @@ return {
     -- reports an error
     skip = { "K6" },
   },
+  -- The pipeline is derived (`scripts/test.sh ci list`). The GitHub workflow is generated from `workflow`:
+  -- `testing init --workflow=public --force` writes it (testing.nvim docs/WORKFLOW-CI.md), the step
+  -- workflow-in-sync checks it.
+  ci = {
+    workflow = {
+      name = "dap.nvim",
+      layout = "hosted",
+      -- the steps that depend on the platform: the windows and macOS legs run only these
+      platform = { "suite", "conformance" },
+    },
+    steps = {
+      ["workflow-in-sync"] = { preset = "workflow-in-sync" },
+    },
+  },
 }
