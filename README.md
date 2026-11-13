@@ -88,3 +88,15 @@ question each page answers.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+<!-- connections:begin (written by the app-icons tool of the workshop; change integrations.json there, not this block) -->
+## Connections
+
+![dap.nvim: what it uses and what uses it](assets/graphs/dap.nvim.png)
+
+**Uses**
+
+- [terminal.nvim](https://github.com/WKDSteve/terminal.nvim): With `terminal.enable`, dap.nvim starts the program of the debug adapter (`runInTerminal`) as a job of a named terminal.nvim terminal (`dap:<configuration name>`). ([picture](assets/graphs/pair/dap.nvim--terminal.nvim.png))
+- [ui.nvim](https://github.com/WKDSteve/ui.nvim): dap.nvim asks for the values of a breakpoint with `ui.kit.input` and builds its menu with `ui.contextmenu` of ui.nvim. ([picture](assets/graphs/pair/dap.nvim--ui.nvim.png))
+- [lib.nvim](https://github.com/WKDSteve/lib.nvim): the shared base of the plugins.
+<!-- connections:end -->
