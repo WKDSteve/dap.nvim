@@ -11,12 +11,17 @@
 local validation = require("wkddap.utils.validation")
 
 describe("wkddap.utils.validation.pick_process()", function()
-  -- The "called outside a coroutine -> nil" guard isn't exercisable from an
-  -- `it()` block: plenary's busted-style runner itself executes every test
-  -- inside a coroutine, so `coroutine.running()` is never nil there. It's
-  -- covered structurally instead, by every other case below always calling
-  -- pick_process() from inside an explicit, separate coroutine and getting a
-  -- thread back rather than nil.
+  -- plenary's busted-style runner executed every test inside a coroutine, so
+  -- this guard was unreachable from an `it()` there. testing.nvim's busted
+  -- dialect runs the `it()` body on the main thread (xpcall, no coroutine), so
+  -- `coroutine.running()` is nil here and the guard is exercised directly.
+  it("returns nil when called outside a coroutine", function()
+    if coroutine.running() then
+      print("n/a  validation_spec: this runner executes it() inside a coroutine")
+      return
+    end
+    assert.is_nil(validation.pick_process())
+  end)
 
   it("returns a not-yet-started coroutine when called from inside one", function()
     local inner
