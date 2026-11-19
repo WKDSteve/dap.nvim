@@ -146,12 +146,16 @@ describe("wkddap.utils.validation.pick_process()", function()
 end)
 
 describe("wkddap.utils.validation.parse_process_list()", function()
-  it("passes `ps -eo pid,comm` lines through as they are, dropping blank ones", function()
-    assert.are.same(
-      { "  PID COMMAND", "  123 nvim", "  456 zsh" },
-      validation.parse_process_list("  PID COMMAND\n  123 nvim\n\n  456 zsh\n")
-    )
-  end)
+  it(
+    "passes `ps -eo pid,comm` lines through as they are, dropping blank ones and the header",
+    function()
+      -- The header as an item would resume nvim-dap with a nil pid when picked.
+      assert.are.same(
+        { "  123 nvim", "  456 zsh" },
+        validation.parse_process_list("  PID COMMAND\n  123 nvim\n\n  456 zsh\n")
+      )
+    end
+  )
 
   it("rewrites tasklist CSV rows to `pid name` so the pid match works on Windows", function()
     local out =

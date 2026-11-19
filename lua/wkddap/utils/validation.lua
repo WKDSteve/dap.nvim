@@ -21,7 +21,9 @@ end
 --- Turn process-listing output into picker items that start with the pid.
 --- `ps -eo pid,comm` lines already do; tasklist's CSV rows
 --- (`"name","pid",...`) are rewritten to `pid name` so the same pid match in
---- on_select works for both. Blank lines are dropped.
+--- on_select works for both. Every other line is dropped: blank ones and
+--- ps's `PID COMMAND` header, which as a picker item resumed nvim-dap with a
+--- nil pid (the attach ended without a word).
 ---@param stdout string|nil
 ---@return string[] items
 function M.parse_process_list(stdout)
@@ -30,7 +32,7 @@ function M.parse_process_list(stdout)
     local name, pid = line:match('^"([^"]*)","(%d+)"')
     if name then
       items[#items + 1] = pid .. " " .. name
-    elseif line:match("%S") then
+    elseif line:match("^%s*%d+") then
       items[#items + 1] = line
     end
   end
