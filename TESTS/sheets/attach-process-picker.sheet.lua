@@ -5,6 +5,7 @@
 return {
   id = "dap.attach-process-picker",
   title = "The JS/TS 'Attach' configuration lists the running processes in a picker and attaches to the chosen pid",
+  task = "dap.nvim/performance-pruefung-luecken-schliessen-katalog-feature-shee",
   feature = "dap.attach-process-picker",
   steps = {
     {

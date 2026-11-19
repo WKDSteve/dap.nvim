@@ -5,6 +5,7 @@
 return {
   id = "dap.zig-build-first",
   title = "The Zig configuration 'Launch (build first)' runs zig build, then asks for the executable",
+  task = "dap.nvim/performance-pruefung-luecken-schliessen-katalog-feature-shee",
   feature = "dap.zig-build-first",
   steps = {
     {

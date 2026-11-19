@@ -5,6 +5,7 @@
 return {
   id = "dap.rust-pretty-printers",
   title = "A Rust launch configuration feeds LLDB the pretty-printers of the project's toolchain (rustc --print sysroot)",
+  task = "dap.nvim/performance-pruefung-luecken-schliessen-katalog-feature-shee",
   feature = "dap.rust-pretty-printers",
   steps = {
     {

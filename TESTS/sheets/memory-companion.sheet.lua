@@ -5,16 +5,33 @@
 return {
   id = "dap.memory-companion",
   title = "The memory view in a companion window: a second Neovim shows the bytes of the debuggee",
+  task = "dap.nvim/performance-pruefung-luecken-schliessen-katalog-feature-shee",
   feature = "dap.memory-companion",
   steps = {
     {
-      lua = 'dofile("TESTS/sheets/_nvim_dap.lua")({ session = "memory" })',
+      lua = [[
+        dofile("TESTS/sheets/_nvim_dap.lua")({ session = "memory", mason = { "codelldb" } })
+        -- The companion reports back over the editor's RPC server. A user's editor has one; the embedded child may
+        -- not, where the sandbox's $TMPDIR makes the socket path too long for a Unix socket (macOS: 104 bytes).
+        if vim.v.servername == "" and vim.fn.has("unix") == 1 then
+          vim.fn.serverstart("/tmp/dap-sheet-" .. vim.fn.getpid() .. ".sock")
+        end
+        -- Notifications go to a list, as with a notification plugin (a long one would hold a hit-enter prompt).
+        _G.notes = {}
+        vim.notify = function(msg)
+          table.insert(_G.notes, msg)
+        end
+      ]],
       note = "a debug session is stopped",
     },
     { lua = 'require("wkddap").setup({ languages = { "c" } })', note = "the user's config" },
     {
       lua = 'require("wkddap.memory").open("&buffer", { companion = true, terminal = false })',
       note = "the user opens the memory of &buffer in the companion",
+    },
+    {
+      lua = 'assert(#_G.notes == 0, "dap.nvim said: " .. table.concat(_G.notes, " | "))',
+      note = "nothing went wrong on the way (else the message is the failure)",
     },
     {
       wait = [[
