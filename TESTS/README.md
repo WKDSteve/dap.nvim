@@ -97,6 +97,24 @@ files below, rather than a gap worth a contrived test.
   only between `it()` blocks *within* the same file, which matters for
   specs that reload a module to reset its internal state.
 
+## Feature sheets
+
+`TESTS/sheets/*.sheet.lua` are testing.nvim feature sheets (its
+`docs/SHEETS.md`), one per functionality of the catalog
+`TESTS/sheets/features.lua` that starts a process: the Rust sysroot lookup,
+`zig build` before a Zig launch, the process picker of the JS/TS "Attach"
+configuration, the memory companion window. `TESTS/wkddap/sheets_spec.lua`
+runs each in a child editor (`nvim` is in `guard_allow.spawn` for that);
+`testing perf` runs the same sheets to measure what those processes cost.
+nvim-dap is a stand-in there too (`TESTS/sheets/_nvim_dap.lua`), the debug
+adapters are empty files in the sandbox's `mason/bin`; what dap.nvim itself
+starts (rustc, zig, ps/tasklist, the companion editor) runs for real, and a
+missing rustc or zig is a path the sheet expects, not a skip.
+
+```bash
+testing sheets run --all --root .
+```
+
 ## Manual check against a real GDB
 
 `scripts/memory-gdb-check.lua` runs the memory view end to end against GDB's

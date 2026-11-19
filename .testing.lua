@@ -35,7 +35,8 @@ return {
   guard_allow = {
     -- rust.setup() runs `rustc --print sysroot` to locate lldb_lookup.py (languages/adapter_setup_spec.lua);
     -- it is real, intended behaviour of the plugin and degrades when rustc is missing.
-    spawn = { "rustc" },
+    -- The feature sheets (TESTS/wkddap/sheets_spec.lua) run each sheet in a child editor.
+    spawn = { "rustc", "nvim" },
   },
   -- Findings the minimal conformance editor cannot avoid (docs/CONFORMANCE.md of testing.nvim); reviewed 2026-10-14.
   conformance = {
