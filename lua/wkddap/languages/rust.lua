@@ -34,24 +34,82 @@ local function remember_sysroot(cwd, res)
 end
 
 ---@internal
+---Backstop for a rustup proxy that hangs (e.g. resolving a toolchain): the
+---lookup ends, its waiters get their answer (no sysroot) and the session starts.
+local SYSROOT_TIMEOUT_MS = 30000
+
+---@internal
+---@class wkddap.RustSysrootLookup
+---@field proc vim.SystemObj|nil  nil until vim.system returned
+---@field waiters fun()[]
+
+---@internal
+---The lookup running per directory: at most one `rustc --print sysroot` per
+---cwd at a time. A prefetch, a second `:cd` into the same project and a
+---session start racing the prefetch all share it instead of starting rustc
+---again.
+---@type table<string, wkddap.RustSysrootLookup>
+local inflight = {}
+
+---@internal
+---Start the lookup for `cwd`, or join the one already running.
+---
+---`on_done` (optional) runs on the main loop once the lookup ended, whatever
+---its outcome; it is never called before this function returned, and never
+---when this function returns nil.
+---@param cwd string
+---@param on_done? fun()
+---@return wkddap.RustSysrootLookup|nil lookup  nil when rustc could not be started
+local function lookup_sysroot(cwd, on_done)
+  local running = inflight[cwd]
+  if running then
+    running.waiters[#running.waiters + 1] = on_done
+    return running
+  end
+  ---@type wkddap.RustSysrootLookup
+  local lookup = { waiters = { on_done } }
+  inflight[cwd] = lookup
+  local ok, proc = pcall(
+    vim.system,
+    { "rustc", "--print", "sysroot" },
+    { text = true, cwd = cwd, timeout = SYSROOT_TIMEOUT_MS },
+    function(res)
+      remember_sysroot(cwd, res)
+      -- Cleared before the waiters run, so one of them may look up again.
+      if inflight[cwd] == lookup then
+        inflight[cwd] = nil
+      end
+      for _, waiter in ipairs(lookup.waiters) do
+        -- One schedule per waiter: a waiter that throws does not cost the
+        -- others their answer.
+        vim.schedule(waiter)
+      end
+    end
+  )
+  if not ok then
+    -- Nobody else can have joined yet; the caller learns it from the nil.
+    inflight[cwd] = nil
+    return nil
+  end
+  lookup.proc = proc
+  return lookup
+end
+
+---@internal
 ---Warm the cache for the current directory in the background.
 ---
 ---`initCommands` below needs the sysroot to point LLDB at Rust's
----pretty-printers, and used to obtain it with `vim.system(...):wait()` --
----blocking the editor on every debug session start. Prefetching it when the
----language module loads means the value is virtually always there by the time
----a session actually starts; the blocking call survives only as the fallback
----for the race where it is not, or for a session started from another
----directory than the prefetch ran in.
+---pretty-printers. Prefetching it when the language module loads, and again
+---after every `:cd` (see M.setup), means the value is virtually always there by
+---the time a session actually starts; the session start only waits for the
+---race where it is not.
 ---@return nil
 local function prefetch_sysroot()
   local cwd = paths.workspace_root()
-  if sysroot_cache[cwd] or not executable.exists("rustc") then
+  if sysroot_cache[cwd] or inflight[cwd] or not executable.exists("rustc") then
     return
   end
-  pcall(vim.system, { "rustc", "--print", "sysroot" }, { text = true, cwd = cwd }, function(res)
-    remember_sysroot(cwd, res)
-  end)
+  lookup_sysroot(cwd)
 end
 
 ---@internal
@@ -61,15 +119,40 @@ local function rustc_sysroot()
   if sysroot_cache[cwd] then
     return sysroot_cache[cwd]
   end
-  if not executable.exists("rustc") then
+  if not inflight[cwd] and not executable.exists("rustc") then
     return nil
   end
-  -- Fallback only: the prefetch above has not landed yet.
-  local ok, proc = pcall(vim.system, { "rustc", "--print", "sysroot" }, { text = true, cwd = cwd })
-  if ok then
-    remember_sysroot(cwd, proc:wait())
+  -- The prefetch has not landed yet. nvim-dap evaluates a configuration's
+  -- function options inside its own coroutine: wait there without blocking
+  -- the editor.
+  local co, is_main = coroutine.running()
+  if co and not is_main then
+    if
+      lookup_sysroot(cwd, function()
+        local ok, err = coroutine.resume(co)
+        if not ok then
+          error(err, 0)
+        end
+      end)
+    then
+      coroutine.yield()
+    end
+    return sysroot_cache[cwd]
+  end
+  -- Called outside a coroutine (not by nvim-dap): join the running lookup
+  -- rather than starting a second rustc, and wait for it.
+  local lookup = lookup_sysroot(cwd)
+  if lookup and lookup.proc then
+    lookup.proc:wait()
   end
   return sysroot_cache[cwd]
+end
+
+---@internal
+---Whether no sysroot lookup is running (a seam for specs and sheets).
+---@return boolean
+function M.sysroot_settled()
+  return next(inflight) == nil
 end
 
 ---@return boolean success
@@ -95,6 +178,16 @@ function M.setup()
     }
 
   prefetch_sysroot()
+  -- The cache is per directory: after a `:cd` into another project the first
+  -- session there would otherwise have to wait for rustc. Registering the
+  -- autocmd starts nothing; the lookup runs when the directory changes.
+  vim.api.nvim_create_autocmd("DirChanged", {
+    group = vim.api.nvim_create_augroup("WkdDapRustSysroot", { clear = true }),
+    desc = "Look up rustc's sysroot for the new directory in the background",
+    callback = function()
+      prefetch_sysroot()
+    end,
+  })
 
   return true
 end

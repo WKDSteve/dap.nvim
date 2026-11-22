@@ -1,6 +1,6 @@
 -- The Rust configuration of a user who has codelldb from Mason: dap.nvim's setup looks up the toolchain's sysroot in
--- the background (`rustc --print sysroot`), and a session started after `:cd` into another project, where that lookup
--- has not run yet, asks rustc on the spot. nvim-dap is a stand-in (TESTS/sheets/_nvim_dap.lua); rustc runs for real
+-- the background (`rustc --print sysroot`), and again after a `:cd` into another project, so a session started there
+-- finds the answer instead of asking rustc on the spot. nvim-dap is a stand-in (TESTS/sheets/_nvim_dap.lua); rustc runs for real
 -- when it is installed and is skipped by dap.nvim when it is not (then the session starts without pretty-printers).
 return {
   id = "dap.rust-pretty-printers",
@@ -39,6 +39,11 @@ return {
         vim.cmd.edit("src/main.rs")
       ]],
       note = "the user moves on to another Rust project",
+    },
+    {
+      wait = "require('wkddap.languages.rust').sysroot_settled()",
+      timeout = 15000,
+      note = "the :cd looked up the new project's sysroot in the background (at once without rustc)",
     },
     {
       lua = "_G.init_commands = package.loaded.dap.configurations.rust[1].initCommands()",
