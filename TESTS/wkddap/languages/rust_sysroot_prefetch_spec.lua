@@ -14,6 +14,9 @@ describe("wkddap.languages.rust: sysroot lookup after :cd", function()
   local procs
   local cwd
   local rustc_present
+  ---@type table<string, string>  projects on disk: a and b are Cargo projects, plain is not
+  local dirs
+  local base
 
   local function reload()
     package.loaded["wkddap.languages.rust"] = nil
@@ -49,7 +52,16 @@ describe("wkddap.languages.rust: sysroot lookup after :cd", function()
     orig_system, orig_notify = vim.system, vim.notify
     ---@diagnostic disable-next-line: duplicate-set-field
     vim.notify = function() end
-    procs, cwd, rustc_present = {}, "/proj/a", true
+    base = vim.fn.tempname()
+    dirs = {}
+    for _, name in ipairs({ "a", "b", "plain" }) do
+      dirs[name] = base .. "/" .. name
+      vim.fn.mkdir(dirs[name] .. "/src", "p")
+      if name ~= "plain" then
+        vim.fn.writefile({ "[package]" }, dirs[name] .. "/Cargo.toml")
+      end
+    end
+    procs, cwd, rustc_present = {}, dirs.a, true
     package.loaded["dap"] = { adapters = {}, configurations = {} }
     package.loaded["wkddap.config"] = {
       get_adapter_path = function(_)
@@ -91,6 +103,7 @@ describe("wkddap.languages.rust: sysroot lookup after :cd", function()
     package.loaded["wkddap.utils.executable"] = nil
     package.loaded["wkddap.utils.paths"] = nil
     package.loaded["wkddap.languages.rust"] = nil
+    vim.fn.delete(base, "rf")
   end)
 
   it("looks up the sysroot of the new directory in the background after a :cd", function()
@@ -98,10 +111,10 @@ describe("wkddap.languages.rust: sysroot lookup after :cd", function()
     assert.is_true(rust.setup())
     assert.are.equal(1, #procs, "setup looks up the directory it ran in")
 
-    dir_changed("/proj/b")
+    dir_changed(dirs.b .. "/src")
     assert.are.equal(2, #procs, "the :cd starts a lookup for the new directory")
     assert.are.same({ "rustc", "--print", "sysroot" }, procs[2].argv)
-    assert.are.equal("/proj/b", procs[2].cwd)
+    assert.are.equal(dirs.b .. "/src", procs[2].cwd)
     assert.is_false(rust.sysroot_settled())
 
     finish(1, "/toolchains/a")
@@ -113,26 +126,33 @@ describe("wkddap.languages.rust: sysroot lookup after :cd", function()
     rustc_present = false
     local rust = reload()
     rust.setup()
-    dir_changed("/proj/b")
+    dir_changed(dirs.b)
     assert.are.equal(0, #procs)
+  end)
+
+  it("starts nothing after a :cd into a directory outside any Cargo project", function()
+    local rust = reload()
+    rust.setup()
+    dir_changed(dirs.plain)
+    assert.are.equal(1, #procs, "only the lookup of setup()")
   end)
 
   it("starts no second lookup for the same directory", function()
     local rust = reload()
     rust.setup()
-    dir_changed("/proj/a")
-    assert.are.equal(1, #procs, "a lookup for /proj/a is already running")
+    dir_changed(dirs.a)
+    assert.are.equal(1, #procs, "a lookup for this directory is already running")
 
     finish(1, "/toolchains/a")
-    dir_changed("/proj/a")
-    assert.are.equal(1, #procs, "the answer for /proj/a is cached")
+    dir_changed(dirs.a)
+    assert.are.equal(1, #procs, "the answer for this directory is cached")
   end)
 
   it("a session racing the lookup waits for it without blocking or starting rustc again", function()
     local rust = reload()
     rust.setup()
     rust.load()
-    dir_changed("/proj/b")
+    dir_changed(dirs.b)
     assert.are.equal(2, #procs)
 
     local result = start_session()
@@ -153,10 +173,10 @@ describe("wkddap.languages.rust: sysroot lookup after :cd", function()
   it("a session in a directory nobody looked up yet asks rustc without blocking", function()
     local rust = reload()
     rust.load()
-    cwd = "/proj/c" -- no DirChanged: e.g. a window-local directory
+    cwd = dirs.plain -- not a Cargo project: no lookup before the session
     local result = start_session()
     assert.are.equal(1, #procs)
-    assert.are.equal("/proj/c", procs[1].cwd)
+    assert.are.equal(dirs.plain, procs[1].cwd)
     assert.is_nil(result())
 
     finish(1, "/toolchains/c")

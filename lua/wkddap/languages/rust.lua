@@ -180,12 +180,23 @@ function M.setup()
   prefetch_sysroot()
   -- The cache is per directory: after a `:cd` into another project the first
   -- session there would otherwise have to wait for rustc. Registering the
-  -- autocmd starts nothing; the lookup runs when the directory changes.
+  -- autocmd starts nothing; the lookup runs when the directory changes, and
+  -- only inside a Cargo project: even a background start costs the editor
+  -- time (process creation is synchronous on Windows), which a `:cd` into
+  -- any other directory -- or every buffer switch under 'autochdir' -- should
+  -- not pay. A session started elsewhere asks rustc without blocking.
   vim.api.nvim_create_autocmd("DirChanged", {
     group = vim.api.nvim_create_augroup("WkdDapRustSysroot", { clear = true }),
-    desc = "Look up rustc's sysroot for the new directory in the background",
+    desc = "Look up rustc's sysroot for the new Cargo project in the background",
     callback = function()
-      prefetch_sysroot()
+      local cwd = paths.workspace_root()
+      if
+        not sysroot_cache[cwd]
+        and not inflight[cwd]
+        and #vim.fs.find("Cargo.toml", { path = cwd, upward = true, limit = 1 }) > 0
+      then
+        prefetch_sysroot()
+      end
     end,
   })
 
