@@ -17,6 +17,28 @@
 --- `config.menu.enable`.
 
 local contextmenu = require("ui.contextmenu")
+local nerd = require("lib.nvim.ui.nerd_font")
+
+---@internal
+--- One glyph per entry, drawn in the renderer's icon column (`opts.icon`), never in the
+--- label: a label that starts with spaces or a glyph indents its row past every other one.
+--- ASCII fallback without a declared Nerd Font.
+---@type table<string, string>
+local ICON = {
+  continue = nerd.glyph("F040A", ">"), -- play
+  step_over = nerd.glyph("F0054", "o"), -- arrow-right
+  step_into = nerd.glyph("F0045", "i"), -- arrow-down
+  step_out = nerd.glyph("F005D", "u"), -- arrow-up
+  terminate = nerd.glyph("F04DB", "x"), -- stop
+  restart = nerd.glyph("F0450", "r"), -- refresh
+  breakpoint = nerd.glyph("F0765", "b"), -- circle-medium
+  condition = nerd.glyph("F0765", "?"), -- circle-medium
+  log = nerd.glyph("F0C60", "l"), -- format-list-bulleted
+  list = nerd.glyph("F0C60", "L"), -- format-list-bulleted
+  ui = nerd.glyph("F0855", "w"), -- dock-left
+  eval = nerd.glyph("F02FC", "e"), -- information-outline
+  dap = nerd.glyph("F00E4", "D"), -- bug
+}
 
 local M = {}
 
@@ -83,36 +105,48 @@ function M.items(_opts)
   -- Session control
   contextmenu.group(
     out,
-    contextmenu.entry(true, "  Continue", dap.continue, keys.continue),
-    contextmenu.entry(true, "  Step Over", dap.step_over, keys.step_over),
-    contextmenu.entry(true, "  Step Into", dap.step_into, keys.step_into),
-    contextmenu.entry(true, "  Step Out", dap.step_out, keys.step_out),
-    contextmenu.entry(true, "  Terminate", dap.terminate, keys.terminate),
-    contextmenu.entry(true, "  Restart", dap.restart, keys.restart)
+    contextmenu.entry(true, "Continue", dap.continue, keys.continue, { icon = ICON.continue }),
+    contextmenu.entry(true, "Step Over", dap.step_over, keys.step_over, { icon = ICON.step_over }),
+    contextmenu.entry(true, "Step Into", dap.step_into, keys.step_into, { icon = ICON.step_into }),
+    contextmenu.entry(true, "Step Out", dap.step_out, keys.step_out, { icon = ICON.step_out }),
+    contextmenu.entry(true, "Terminate", dap.terminate, keys.terminate, { icon = ICON.terminate }),
+    contextmenu.entry(true, "Restart", dap.restart, keys.restart, { icon = ICON.restart })
   )
 
   -- Breakpoints
   contextmenu.group(
     out,
-    contextmenu.entry(true, "  Toggle Breakpoint", dap.toggle_breakpoint, keys.toggle_breakpoint),
-    contextmenu.entry(true, "  Conditional Breakpoint…", function()
+    contextmenu.entry(
+      true,
+      "Toggle Breakpoint",
+      dap.toggle_breakpoint,
+      keys.toggle_breakpoint,
+      { icon = ICON.breakpoint }
+    ),
+    contextmenu.entry(true, "Conditional Breakpoint…", function()
       require("wkddap.core.breakpoints").prompt_condition()
-    end, keys.conditional_breakpoint),
-    contextmenu.entry(true, "  Log Point…", function()
+    end, keys.conditional_breakpoint, { icon = ICON.condition }),
+    contextmenu.entry(true, "Log Point…", function()
       require("wkddap.core.breakpoints").prompt_log_point()
-    end, keys.log_point),
-    contextmenu.entry(true, "  List Breakpoints", dap.list_breakpoints, keys.list_breakpoints)
+    end, keys.log_point, { icon = ICON.log }),
+    contextmenu.entry(
+      true,
+      "List Breakpoints",
+      dap.list_breakpoints,
+      keys.list_breakpoints,
+      { icon = ICON.list }
+    )
   )
 
   -- Panel UI
   contextmenu.group(
     out,
-    contextmenu.entry(true, "  Toggle DAP UI", function()
+    contextmenu.entry(true, "Toggle DAP UI", function()
       ui().toggle()
-    end, keys.toggle_ui),
-    contextmenu.entry(true, "  Evaluate Expression / Selection", function()
+    end, keys.toggle_ui, { icon = ICON.ui }),
+    contextmenu.entry(true, "Evaluate Expression / Selection", function()
       ui().eval()
-    end, keys.eval)
+    end, keys.eval, { icon = ICON.eval })
   )
 
   return out
@@ -121,10 +155,10 @@ end
 --- Convenience: the dap.nvim entries wrapped as a single nested submenu
 --- entry, for hosts that prefer a "DAP ▸" fly-out instead of inline entries.
 --- Returns nil when there is nothing to show.
----@param label? string submenu label (default "  DAP")
+---@param label? string submenu label (default "DAP")
 ---@return Ui.ContextMenu.Item|nil
 function M.submenu(label)
-  return contextmenu.submenu(label or "  DAP", M.items())
+  return contextmenu.submenu(label or "DAP", M.items(), { icon = ICON.dap })
 end
 
 return M

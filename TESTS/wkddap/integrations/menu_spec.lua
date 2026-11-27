@@ -14,11 +14,11 @@ local function fake_contextmenu()
         table.insert(out, entry)
       end
     end,
-    entry = function(enabled, label, fn, keys)
-      return { enabled = enabled, label = label, fn = fn, keys = keys }
+    entry = function(enabled, label, fn, keys, opts)
+      return { enabled = enabled, label = label, fn = fn, keys = keys, icon = (opts or {}).icon }
     end,
-    submenu = function(label, items)
-      return { label = label, items = items }
+    submenu = function(label, items, opts)
+      return { label = label, items = items, icon = (opts or {}).icon }
     end,
   }
 end
@@ -106,6 +106,11 @@ describe("wkddap.integrations.menu", function()
     for _, item in ipairs(items) do
       assert.is_true(item.enabled)
       assert.are.equal("string", type(item.label))
+      -- The glyph goes in the icon column, never into the label: a label that starts
+      -- with spaces indents its row past every other one.
+      assert.is_nil(item.label:match("^%s"), item.label)
+      assert.are.equal("string", type(item.icon), item.label)
+      assert.are_not.equal("", item.icon, item.label)
     end
   end)
 
@@ -177,7 +182,8 @@ describe("wkddap.integrations.menu", function()
     local menu = reload()
 
     local sub = menu.submenu()
-    assert.are.equal("  DAP", sub.label)
+    assert.are.equal("DAP", sub.label)
+    assert.are.equal("string", type(sub.icon))
     assert.are.same({}, sub.items)
   end)
 
