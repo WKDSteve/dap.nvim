@@ -46,8 +46,18 @@ return {
       note = "the :cd looked up the new project's sysroot in the background (at once without rustc)",
     },
     {
-      lua = "_G.init_commands = package.loaded.dap.configurations.rust[1].initCommands()",
+      lua = [[
+        -- Without rustc dap.nvim warns "rustc not found ...", longer than the child's 80 columns: shown for real the
+        -- message ends in a hit-enter prompt that swallows the next step. Catch it instead (and look at it below).
+        _G.notified = {}
+        vim.notify = function(msg) table.insert(_G.notified, tostring(msg)) end
+        _G.init_commands = package.loaded.dap.configurations.rust[1].initCommands()
+      ]],
       note = "a session starts there: nvim-dap asks the configuration for LLDB's initCommands",
+    },
+    {
+      expect = [[vim.fn.executable("rustc") == 1 or (#_G.notified == 1 and _G.notified[1]:find("rustc not found", 1, true) ~= nil)]],
+      note = "without rustc the user is told why there are no pretty-printers",
     },
     {
       expect = [[
