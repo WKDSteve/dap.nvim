@@ -5,7 +5,7 @@
 --- `ui.contextmenu` is required unconditionally at module load (not pcall'd,
 --- unlike every other soft dependency in this plugin), so it must be stubbed
 --- in package.loaded *before* the module is (re)required -- an absent real
---- nvzone/menu install would otherwise fail the require itself.
+--- ui.nvim install would otherwise fail the require itself.
 
 local function fake_contextmenu()
   return {

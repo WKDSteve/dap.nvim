@@ -75,7 +75,7 @@ question each page answers.
   Neovim in its own terminal, for a second monitor — navigated from there.
 - [Panel UI](docs/panel-ui.md) — choosing between nvim-dap-view and nvim-dap-ui via `ui.provider`.
 - [Workflow](docs/WORKFLOW.md) — how the pieces combine in daily debugging use, with the gotchas.
-- [Integrations](docs/integrations.md) — the nvzone/menu context-menu bridge.
+- [Integrations](docs/integrations.md) — the context-menu bridge.
 - [Health check](docs/health.md) — what `:checkhealth wkddap` verifies.
 - [Architecture](docs/architecture.md) — module layout and file responsibilities.
 - [Contributing](docs/CONTRIBUTING.md) — ground rules, project layout, and how to add a language.

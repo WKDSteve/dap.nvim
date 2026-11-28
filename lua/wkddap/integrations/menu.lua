@@ -1,9 +1,9 @@
 ---@module 'wkddap.integrations.menu'
----@brief Context-menu entries for nvzone/menu (soft, opt-in integration).
+---@brief Context-menu entries (soft, opt-in integration).
 ---@description
 --- dap.nvim does not depend on a menu plugin. Instead it *provides* a list of
---- entries in the shape `ui.contextmenu` (and, transitively, nvzone/menu)
---- expects, and a host — typically the user's own RightMouse dispatcher —
+--- entries in the shape `ui.contextmenu`
+--- draws, and a host — typically the user's own RightMouse dispatcher —
 --- composes them into its own menu, e.g.:
 --- >
 ---   local items = require("wkddap.integrations.menu").items()

@@ -40,8 +40,8 @@ local DEFAULTS = {
     enable = true,
   },
 
-  -- nvzone/menu context-menu contribution (integrations/menu.lua). dap.nvim
-  -- ships no trigger code and no nvzone/menu dependency itself; this only
+  -- context-menu contribution (integrations/menu.lua). dap.nvim
+  -- ships no trigger code and no menu dependency itself; this only
   -- gates whether M.items()/M.submenu() return entries for a host to compose.
   menu = {
     enable = true,

@@ -64,7 +64,7 @@ a return has the same problem.
 - **Keymaps:** `<leader>dB` (condition), `<leader>dL` (log point)
 - **Usercmds:** `:Dap conditional-breakpoint`, `:Dap log-point` (the
   no-argument form; passing the value inline skips the prompt entirely)
-- **Also:** the nvzone/menu entries in `integrations/menu.lua`
+- **Also:** the context-menu entries in `integrations/menu.lua`
 
 The prompt used to open empty every time, so fixing a typo in a condition — or
 putting the same condition on the next line — meant retyping the whole thing.
@@ -142,13 +142,13 @@ only **nvim-dap-ui** emits — see [UI.md](UI.md)'s panel UI provider entry.
 With the default `dap-view` provider active, this autocmd pair is wired but
 never fires.
 
-## Right-click context menu (nvzone/menu)
+## Right-click context menu
 
 `wkddap.integrations.menu` contributes entries for session control
 (Continue/Step Over/Step Into/Step Out/Terminate/Restart), breakpoints
 (Toggle/Conditional/Log Point/List), and the panel UI (Toggle DAP UI,
 Evaluate Expression/Selection) — the same actions the default keymaps
-expose, in the shape [nvzone/menu](https://github.com/nvzone/menu) expects.
+expose, in the context-menu entry shape.
 dap.nvim has no dependency on `menu` and never opens a context menu itself
 — a host (typically your own `<RightMouse>` dispatcher) composes the
 entries into its own menu. `items()` degrades to an empty list when

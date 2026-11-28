@@ -22,4 +22,3 @@ Each detected at runtime and degrading to nothing when absent:
 | [one-small-step-for-vimkind](https://github.com/jbyuki/one-small-step-for-vimkind) | Lua debugging — required for that target specifically |
 | [mason.nvim](https://github.com/williamboman/mason.nvim) | Fallback location for adapter binaries |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | The `<leader>d` group label |
-| [nvzone/menu](https://github.com/nvzone/menu) | A host for the context-menu entries — see [integrations.md](integrations.md) |

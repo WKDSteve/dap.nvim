@@ -8,7 +8,7 @@
 ---@field keymaps? Dap.KeymapOptions Keymap configuration
 ---@field which_key? Dap.WhichKeyOptions which-key integration
 ---@field autocmds? Dap.AutocmdOptions Autocommand configuration
----@field menu? Dap.MenuOptions nvzone/menu context-menu contribution
+---@field menu? Dap.MenuOptions context-menu contribution
 ---@field integrations? Dap.IntegrationsOptions Which hosts may drive this plugin (`ui_menu`)
 ---@field terminal? Dap.TerminalOptions Start debuggee programs in a terminal.nvim terminal
 ---@field memory? Dap.MemoryOptions Memory view (`:Dap memory`)
@@ -43,7 +43,7 @@
 ---@field enable boolean Enable default autocommands (DAP UI cursorline toggle)
 
 ---@class Dap.MenuOptions
----@field enable boolean Provide nvzone/menu entries via integrations/menu.lua. Default true.
+---@field enable boolean Provide context-menu entries via integrations/menu.lua. Default true.
 
 ---@class Dap.MemoryOptions
 ---@field context_rows integer 16-byte rows shown above the target when the view opens or

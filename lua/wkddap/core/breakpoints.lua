@@ -2,7 +2,7 @@
 --- Prompting for conditional breakpoints and log points.
 ---
 --- The prompt used to open empty every time, from three separate call sites
---- (keymaps, `:Dap conditional-breakpoint`/`log-point`, and the nvzone/menu
+--- (keymaps, `:Dap conditional-breakpoint`/`log-point`, and the context-menu
 --- entries) that each had their own copy of it. Retyping a condition to fix a
 --- typo in it, or to put the same one on the next line, meant typing the whole
 --- thing again.

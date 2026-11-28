@@ -46,7 +46,7 @@ claim that name.
 | `lua/wkddap/ui/` | Panel UI provider selection (nvim-dap-view, nvim-dap-ui) |
 | `lua/wkddap/bindings/` | The `:Dap` route tree and the default keymaps |
 | `lua/wkddap/config/` | Defaults and `setup()` validation |
-| `lua/wkddap/integrations/` | Soft-dependency bridges (nvzone/menu) |
+| `lua/wkddap/integrations/` | Soft-dependency bridges (context-menu entries) |
 | `lua/wkddap/core/`, `utils/` | Adapter discovery, validation, shared helpers |
 | `docs/` | Everything the README links to |
 | `TESTS/` | The spec suite, mirroring `lua/wkddap/`'s paths |
